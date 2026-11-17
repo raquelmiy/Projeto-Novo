@@ -1,0 +1,5 @@
+[
+  { "id": "CT0001", "objeto": "Account", "tela": true, "massa": { "Name": "QA Acesso Tela" } },
+  { "id": "CT0002", "objeto": "Contact", "tela": true, "massa": { "LastName": "QA Acesso Tela" } },
+  { "id": "CT0003", "objeto": "Lead", "tela": true }
+]

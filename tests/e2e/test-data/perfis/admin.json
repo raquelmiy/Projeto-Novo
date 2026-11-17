@@ -1,0 +1,9 @@
+{
+  "nome": "Admin",
+  "perfilSalesforce": "System Administrator",
+  "usuario": "<alias-admin>",
+  "padrao": true,
+  "acesso": {
+    "*": ["ler", "criar", "editar", "excluir"]
+  }
+}

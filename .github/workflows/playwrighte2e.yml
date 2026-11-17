@@ -1,0 +1,116 @@
+name: Playwright - Testes E2E
+
+# No repositório-modelo só a execução manual fica ligada: o modelo não tem secrets, e o cron e
+# os PRs falhariam no passo "Autenticar". Depois de cadastrar os secrets SF_AUTH_URL_<PERFIL>,
+# o projeto descomenta os gatilhos pull_request e schedule abaixo (README, seção CI).
+on:
+  workflow_dispatch:
+    inputs:
+      perfis:
+        description: "Perfis da rodada, separados por vírgula (ex.: admin,sdr). Vazio = admin,sdr"
+        required: false
+        default: "admin,sdr"
+      spec:
+        description: "Pasta ou arquivo de suíte (ex.: tests/e2e/specs/smoke). Vazio = todas"
+        required: false
+        default: ""
+  # pull_request:
+  #   branches: [main]
+  #   paths:
+  #     - "tests/e2e/**"
+  #     - "playwright.config.js"
+  #     - "package.json"
+  #     - "package-lock.json"
+  #     - ".github/workflows/playwrighte2e.yml"
+  # # Pega mudanças feitas direto na org. O cron usa UTC: 13:00 UTC = 10:00 de Brasília.
+  # schedule:
+  #   - cron: "0 13 * * *"
+
+# A org aceita poucas sessões simultâneas e a suíte roda com 1 worker:
+# uma rodada por vez, sem cancelar a que já está em execução.
+concurrency:
+  group: playwright-e2e
+  cancel-in-progress: false
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    # Ajustar ao tempo da rodada completa do projeto, com folga para a org lenta.
+    timeout-minutes: 150
+    env:
+      # Só os perfis com usuário autenticado no passo "Autenticar".
+      PERFIS: ${{ github.event.inputs.perfis || 'admin,sdr' }}
+      FORCE_COLOR: "0"
+    steps:
+      - name: Baixar o código
+        uses: actions/checkout@v4
+
+      - name: Instalar Node.js
+        uses: actions/setup-node@v4
+        with:
+          # O Salesforce CLI exige Node 22+. Mesma versão usada localmente.
+          node-version: 24
+          cache: npm
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Instalar Salesforce CLI
+        run: npm install --global @salesforce/cli
+
+      # Um secret por perfil: SF_AUTH_URL_<PERFIL>, com o id do perfil em maiúsculas.
+      # O alias precisa ser igual ao "usuario" do perfil em tests/e2e/test-data/perfis/<id>.json.
+      - name: Autenticar usuário admin na org
+        env:
+          SF_AUTH_URL: ${{ secrets.SF_AUTH_URL_ADMIN }}
+        run: |
+          if [ -z "$SF_AUTH_URL" ]; then
+            echo "::error::Secret SF_AUTH_URL_ADMIN não configurado."
+            exit 1
+          fi
+          echo "$SF_AUTH_URL" > ./sf-auth.txt
+          sf org login sfdx-url --sfdx-url-file ./sf-auth.txt --alias "<alias-admin>"
+          rm -f ./sf-auth.txt
+
+      # SDR: se o secret não existe, a rodada segue só com os outros perfis (com aviso).
+      - name: Autenticar usuário sdr na org
+        if: ${{ contains(env.PERFIS, 'sdr') }}
+        env:
+          SF_AUTH_URL: ${{ secrets.SF_AUTH_URL_SDR }}
+        run: |
+          if [ -z "$SF_AUTH_URL" ]; then
+            echo "::warning::Secret SF_AUTH_URL_SDR não configurado. A rodada segue sem o perfil sdr."
+            echo "PERFIS=$(echo "$PERFIS" | tr ',' '\n' | grep -vx 'sdr' | paste -sd, -)" >> "$GITHUB_ENV"
+            exit 0
+          fi
+          echo "$SF_AUTH_URL" > ./sf-auth.txt
+          sf org login sfdx-url --sfdx-url-file ./sf-auth.txt --alias "<alias-sdr>"
+          rm -f ./sf-auth.txt
+
+      - name: Instalar Google Chrome para o Playwright
+        run: npx playwright install --with-deps chrome
+
+      - name: Executar suíte Playwright
+        env:
+          SPEC: ${{ github.event.inputs.spec }}
+        run: npx playwright test $SPEC
+
+      - name: Publicar relatório HTML
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 30
+
+      - name: Publicar evidências e painel
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-evidence
+          path: |
+            test-evidence/
+            painel-dados/
+            test-results/
+          retention-days: 30
+          if-no-files-found: ignore

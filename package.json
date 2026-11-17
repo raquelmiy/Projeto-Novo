@@ -1,0 +1,12 @@
+{
+  "name": "modelo-playwright",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Repositório-modelo da automação de testes E2E com Playwright para projetos Salesforce",
+  "scripts": {
+    "test:e2e": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.64.1"
+  }
+}

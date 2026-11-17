@@ -1,0 +1,21 @@
+node_modules/
+.DS_Store
+*.log
+.env
+.env.*
+!.env.example
+certificates/
+*.pem
+*.key
+# Saída do "sf org display --verbose --json": contém token e URL de autenticação
+auth.json
+.sfdx/
+.sf/
+.localdevserver/
+coverage/
+
+# Resultados da automação Playwright
+test-results/
+playwright-report/
+test-evidence/
+painel-dados/
