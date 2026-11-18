@@ -1,8 +1,7 @@
 name: Playwright - Testes E2E
 
-# No repositório-modelo só a execução manual fica ligada: o modelo não tem secrets, e o cron e
-# os PRs falhariam no passo "Autenticar". Depois de cadastrar os secrets PROJETO_AMBIENTE_<PERFIL>,
-# o projeto descomenta os gatilhos pull_request e schedule abaixo (README, seção CI).
+# Roda manualmente, em PRs para a main e todo dia pelo cron. Os três dependem do secret
+# PROJETO_AMBIENTE_ADMIN: sem ele, a rodada falha no passo "Autenticar" (README, seção CI).
 on:
   workflow_dispatch:
     inputs:
