@@ -14,17 +14,17 @@ on:
         description: "Pasta ou arquivo de suíte (ex.: tests/e2e/specs/smoke). Vazio = todas"
         required: false
         default: ""
-  # pull_request:
-  #   branches: [main]
-  #   paths:
-  #     - "tests/e2e/**"
-  #     - "playwright.config.js"
-  #     - "package.json"
-  #     - "package-lock.json"
-  #     - ".github/workflows/playwrighte2e.yml"
-  # # Pega mudanças feitas direto na org. O cron usa UTC: 13:00 UTC = 10:00 de Brasília.
-  # schedule:
-  #   - cron: "0 13 * * *"
+  pull_request:
+    branches: [main]
+    paths:
+      - "tests/e2e/**"
+      - "playwright.config.js"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/playwrighte2e.yml"
+  # Pega mudanças feitas direto na org. O cron usa UTC: 13:00 UTC = 10:00 de Brasília.
+  schedule:
+    - cron: "0 13 * * *"
 
 # A org aceita poucas sessões simultâneas e a suíte roda com 1 worker:
 # uma rodada por vez, sem cancelar a que já está em execução.
