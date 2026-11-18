@@ -39,6 +39,6 @@ module.exports = async function conferirPerfis() {
         }
     }
     if (erros.length) {
-        throw new Error(`Usuário com perfil errado. Refazer o login do alias (no CI, o secret SF_AUTH_URL_<PERFIL>):\n- ${erros.join('\n- ')}`);
+        throw new Error(`Usuário com perfil errado. Refazer o login do alias (no CI, o secret PROJETO_AMBIENTE_<PERFIL>):\n- ${erros.join('\n- ')}`);
     }
 };

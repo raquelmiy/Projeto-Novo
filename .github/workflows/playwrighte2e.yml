@@ -1,15 +1,15 @@
 name: Playwright - Testes E2E
 
 # No repositório-modelo só a execução manual fica ligada: o modelo não tem secrets, e o cron e
-# os PRs falhariam no passo "Autenticar". Depois de cadastrar os secrets SF_AUTH_URL_<PERFIL>,
+# os PRs falhariam no passo "Autenticar". Depois de cadastrar os secrets PROJETO_AMBIENTE_<PERFIL>,
 # o projeto descomenta os gatilhos pull_request e schedule abaixo (README, seção CI).
 on:
   workflow_dispatch:
     inputs:
       perfis:
-        description: "Perfis da rodada, separados por vírgula (ex.: admin,sdr). Vazio = admin,sdr"
+        description: "Perfis da rodada, separados por vírgula (ex.: admin). Vazio = admin"
         required: false
-        default: "admin,sdr"
+        default: "admin"
       spec:
         description: "Pasta ou arquivo de suíte (ex.: tests/e2e/specs/smoke). Vazio = todas"
         required: false
@@ -39,7 +39,7 @@ jobs:
     timeout-minutes: 150
     env:
       # Só os perfis com usuário autenticado no passo "Autenticar".
-      PERFIS: ${{ github.event.inputs.perfis || 'admin,sdr' }}
+      PERFIS: ${{ github.event.inputs.perfis || 'admin' }}
       FORCE_COLOR: "0"
     steps:
       - name: Baixar o código
@@ -58,33 +58,18 @@ jobs:
       - name: Instalar Salesforce CLI
         run: npm install --global @salesforce/cli
 
-      # Um secret por perfil: SF_AUTH_URL_<PERFIL>, com o id do perfil em maiúsculas.
+      # Um secret por perfil: PROJETO_AMBIENTE_<PERFIL>, com o id do perfil em maiúsculas.
       # O alias precisa ser igual ao "usuario" do perfil em tests/e2e/test-data/perfis/<id>.json.
       - name: Autenticar usuário admin na org
         env:
-          SF_AUTH_URL: ${{ secrets.SF_AUTH_URL_ADMIN }}
+          SF_AUTH_URL: ${{ secrets.PROJETO_AMBIENTE_ADMIN }}
         run: |
           if [ -z "$SF_AUTH_URL" ]; then
-            echo "::error::Secret SF_AUTH_URL_ADMIN não configurado."
+            echo "::error::Secret PROJETO_AMBIENTE_ADMIN não configurado."
             exit 1
           fi
           echo "$SF_AUTH_URL" > ./sf-auth.txt
-          sf org login sfdx-url --sfdx-url-file ./sf-auth.txt --alias "<alias-admin>"
-          rm -f ./sf-auth.txt
-
-      # SDR: se o secret não existe, a rodada segue só com os outros perfis (com aviso).
-      - name: Autenticar usuário sdr na org
-        if: ${{ contains(env.PERFIS, 'sdr') }}
-        env:
-          SF_AUTH_URL: ${{ secrets.SF_AUTH_URL_SDR }}
-        run: |
-          if [ -z "$SF_AUTH_URL" ]; then
-            echo "::warning::Secret SF_AUTH_URL_SDR não configurado. A rodada segue sem o perfil sdr."
-            echo "PERFIS=$(echo "$PERFIS" | tr ',' '\n' | grep -vx 'sdr' | paste -sd, -)" >> "$GITHUB_ENV"
-            exit 0
-          fi
-          echo "$SF_AUTH_URL" > ./sf-auth.txt
-          sf org login sfdx-url --sfdx-url-file ./sf-auth.txt --alias "<alias-sdr>"
+          sf org login sfdx-url --sfdx-url-file ./sf-auth.txt --alias "projetonovo-qa-admin"
           rm -f ./sf-auth.txt
 
       - name: Instalar Google Chrome para o Playwright

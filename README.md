@@ -15,7 +15,7 @@ O passo a passo completo está na IT do framework, no Confluence: [Instalar e Ut
    | `tests/e2e/test-data/perfis/<id>.json` | `usuario` (alias da Salesforce CLI) e `perfilSalesforce` de cada perfil |
    | `.github/workflows/playwrighte2e.yml` | O `--alias` de cada passo "Autenticar", igual ao `usuario` do perfil |
 
-3. Ajustar os perfis em `tests/e2e/test-data/perfis/`. Um arquivo por perfil, e exatamente um com `"padrao": true`. Os acessos de `sdr.json` são um exemplo: substituir pelos acessos que o projeto espera.
+3. Ajustar os perfis em `tests/e2e/test-data/perfis/`. Um arquivo por perfil, e exatamente um com `"padrao": true`.
 4. Ajustar `tests/e2e/test-data/acesso/objetos.json` com os objetos que a conferência de acesso deve verificar.
 5. Autenticar na Salesforce CLI o usuário de cada perfil, com o alias definido no perfil:
 
@@ -58,8 +58,8 @@ O workflow `.github/workflows/playwrighte2e.yml` vem só com a execução manual
 
 Para ligar o CI no projeto:
 
-1. Cadastrar em *Settings › Secrets and variables › Actions* um secret por perfil, no formato `SF_AUTH_URL_<PERFIL>`: `SF_AUTH_URL_ADMIN` (obrigatório) e `SF_AUTH_URL_SDR`. Cada secret usa um usuário dedicado ao CI, com o mesmo perfil do usuário local. A forma de gerar o valor está em [tests/e2e/README.md](tests/e2e/README.md#ci-github-actions).
+1. Cadastrar em *Settings › Secrets and variables › Actions* um secret por perfil, no formato `PROJETO_AMBIENTE_<PERFIL>`: `PROJETO_AMBIENTE_ADMIN`. Cada secret usa um usuário dedicado ao CI, com o mesmo perfil do usuário local. A forma de gerar o valor está em [tests/e2e/README.md](tests/e2e/README.md#ci-github-actions).
 2. Rodar o workflow manualmente uma vez (*Actions › Playwright - Testes E2E › Run workflow*) e conferir que passa.
 3. Descomentar no workflow os gatilhos `pull_request` e `schedule` (cron diário às 10:00 de Brasília).
 
-Para um perfil novo, criar o secret `SF_AUTH_URL_<PERFIL>` e copiar no workflow o passo "Autenticar usuário sdr na org", trocando o secret e o alias.
+Para um perfil novo, criar o secret `PROJETO_AMBIENTE_<PERFIL>` e copiar no workflow o passo "Autenticar usuário admin na org", trocando o secret e o alias.
