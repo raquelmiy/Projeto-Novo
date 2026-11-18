@@ -104,14 +104,14 @@ Workflow: `.github/workflows/playwrighte2e.yml`.
 
 | Gatilho | Quando | No modelo |
 |---------|--------|-----------|
-| `workflow_dispatch` | Manual. Entradas: `perfis` (padrão `admin,sdr`) e `spec` (vazio = todas) | Ligado |
+| `workflow_dispatch` | Manual. Entradas: `perfis` (padrão `admin`) e `spec` (vazio = todas) | Ligado |
 | `schedule` | Todos os dias às 10:00 (Brasília) | Comentado |
 | `pull_request` | PR para `main` com mudança em `tests/e2e/`, `playwright.config.js`, `package.json`, `package-lock.json` ou no workflow | Comentado |
 
 - O projeto descomenta `schedule` e `pull_request` depois de cadastrar os secrets. Sem eles, toda rodada falha no passo "Autenticar".
 - Somente uma rodada executa por vez. A org aceita poucas sessões simultâneas.
-- Cada usuário da CLI precisa de um secret `SF_AUTH_URL_<PERFIL>`: `SF_AUTH_URL_ADMIN` (obrigatório) e `SF_AUTH_URL_SDR`. Sem `SF_AUTH_URL_SDR`, a rodada segue só com o admin e mostra um aviso.
+- Cada usuário da CLI precisa de um secret `PROJETO_AMBIENTE_<PERFIL>`: `PROJETO_AMBIENTE_ADMIN` (obrigatório).
 - O `--alias` de cada passo "Autenticar" do workflow é igual ao `usuario` do perfil em `test-data/perfis/<id>.json`.
 - Cada secret usa um usuário dedicado ao CI, com o mesmo perfil do usuário local: o uso local renova o refresh token e invalida a cópia do secret. Registrar o username do usuário de CI na documentação do projeto, não neste repositório.
-- Gerar o valor do secret: `sf org login web --instance-url https://test.salesforce.com --alias ci-temp` com o usuário de CI, depois `sf org display --target-org ci-temp --verbose --json` com a variável de ambiente `TEMP_SHOW_SECRETS=true` (as versões novas da CLI escondem o valor sem ela) e copiar `result.sfdxAuthUrl`. Em seguida, `sf org logout --target-org ci-temp`. O valor dá acesso à org: não colar em chat, issue ou arquivo do repositório.
+- Gerar o valor do secret: `sf org login web --instance-url https://test.salesforce.com --alias ci-temp` com o usuário de CI, depois `sf org auth show-sfdx-auth-url --target-org ci-temp` e copiar a URL mostrada (o `sf org display` deixou de exibir esse valor nas versões novas da CLI). Em seguida, `sf org logout --target-org ci-temp`. O valor dá acesso à org: não colar em chat, issue ou arquivo do repositório.
 - O CI publica os artifacts `playwright-report` e `test-evidence` (evidências, painel e `test-results/`) por 30 dias.
